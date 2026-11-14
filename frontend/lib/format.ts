@@ -31,6 +31,17 @@ export function remaining(nowNs: string, endNs: string): string {
   }
 }
 
+export function timestampLabel(ns: string | null | undefined): string {
+  if (!ns) return "—";
+  try {
+    const ms = Number(BigInt(ns) / 1_000_000n);
+    if (!Number.isFinite(ms) || ms < 1_000_000_000_000) return ns;
+    return new Date(ms).toISOString();
+  } catch {
+    return ns;
+  }
+}
+
 export function deploymentBanner(kind: string | undefined, faucet: boolean | undefined): string {
   if (kind === "demo-testnet") {
     return "Demo deployment. Epochs last 1 hour and the entry window is 10 minutes. This is not a seven-day production epoch. The faucet is on and is not Sybil-proof.";

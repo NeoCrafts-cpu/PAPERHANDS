@@ -49,7 +49,17 @@ async function main() {
   const rpc = process.env.NEAR_RPC_URL || "https://rpc.testnet.near.org";
   const contractId = process.env.SPONSOR_CONTRACT_ID || "sponsor.diabloodevs.testnet";
   const config = await view(rpc, contractId, "get_protocol_config", {});
-  const campaigns = await view(rpc, contractId, "list_campaigns", { from_index: "1", limit: "50" });
+  const campaigns = [];
+  let from = "1";
+  for (let page = 0; page < 40; page += 1) {
+    const batch = await view(rpc, contractId, "list_campaigns", { from_index: from, limit: "50" });
+    if (batch.length === 0) break;
+    campaigns.push(...batch);
+    if (batch.length < 50) break;
+    const last = batch[batch.length - 1]?.campaign_id;
+    if (!last) break;
+    from = (BigInt(last) + 1n).toString();
+  }
   const now = BigInt(Date.now()) * 1_000_000n;
   const actions = [];
   for (const campaign of campaigns) {
